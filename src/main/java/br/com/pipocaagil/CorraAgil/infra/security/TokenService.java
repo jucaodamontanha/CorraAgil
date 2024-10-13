@@ -6,6 +6,7 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -16,7 +17,7 @@ import java.time.ZoneOffset;
 public class TokenService {
     @Value("${api.security.token.secret}")
     private String secret;
-
+    @Bean
     public String generateToken(UsuarioModel usuarioModel) {
         try {
             // Algoritmo de criptografia para utilizar
@@ -33,12 +34,7 @@ public class TokenService {
         }
     }
 
-    /**
-     * Método para executar a lógica da validação do 'withSubject()' o login e validar o token
-     *
-     * @param validateToken
-     * @return
-     */
+     @Bean
     public String validateToken(String validateToken) {
         try {
             // Algoritmo de criptografia para utilizar
@@ -55,11 +51,6 @@ public class TokenService {
         }
     }
 
-    /**
-     * Método configurado para Token de Expeiração em 2h
-     *
-     * @return
-     */
     private Instant generateExpirationDate() {
         return LocalDateTime.now().plusHours(2).toInstant(ZoneOffset.of("-03:00"));
     }

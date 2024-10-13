@@ -12,14 +12,7 @@ public class CustomAuthenticationService implements UserDetailsService {
     @Autowired
     private UsuarioRepository repository;
 
-    /**
-     * Método para processo de Autenticação do usuário
-     *
-     * @param username
-     * @return
-     * @throws UsernameNotFoundException
-     */
-    @Override
+
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         // Buscar o usuário no banco de dados
         return this.repository.findByLogin(username);

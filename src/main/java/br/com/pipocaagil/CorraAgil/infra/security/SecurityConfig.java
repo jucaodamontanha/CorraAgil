@@ -17,16 +17,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 public class SecurityConfig {
     @Autowired
-    private SecurityFilter securityFilter;
+   private   SecurityFilter securityFilter;
 
-
-    /**
-     * Metodo para o processo de identificação para processo de autenticação e autorização
-     *
-     * @param http
-     * @return Politica de Criação de Sessão para Stateless
-     * @throws Exception
-     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         // Desabilitando contra Ataques 'CRSF' e utilizar TOKEN
@@ -45,23 +37,11 @@ public class SecurityConfig {
                 .build();
     }
 
-    /**
-     * AuthenticationManager é uma classe do Spring que precisa ser
-     * configurada para injetar as depêndencias de segurança
-     *
-     * @param configuration
-     * @return Default AuthenticationManager
-     * @throws Exception
-     */
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager();
     }
 
-    /**
-     * Método configurado par armazenamento de senhas encriptografadas usando bcrypt
-     * como hash de senha no armazenamento do banco de dados
-     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
