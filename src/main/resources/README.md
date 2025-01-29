@@ -40,7 +40,7 @@ spring.mail.properties.mail.smtp.starttls.enable=true
 
 ### Clone o repositório:
 
-`git clone https://github.com/seu-usuario/corrida-agil.git`
+`git clone https://github.com/Equipe-Bronze/CorraAgil.git`
 
 ### Navegue até o diretório do projeto:
 
