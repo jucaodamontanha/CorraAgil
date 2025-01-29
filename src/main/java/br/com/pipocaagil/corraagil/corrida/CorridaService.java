@@ -5,28 +5,57 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 
+/**
+ * Serviço para gerenciar operações de corrida.
+ */
 @Service
 public class CorridaService {
     @Autowired
-   private CorridaRepository corridaRepository;
+    private CorridaRepository corridaRepository;
 
-    public CorridaModel iniciarCorrida(){
+    /**
+     * Inicia uma nova corrida.
+     *
+     * @return CorridaModel com os dados da corrida iniciada
+     */
+    public CorridaModel iniciarCorrida() {
         CorridaModel corridaModel = new CorridaModel();
         corridaModel.setInicio(LocalDateTime.now());
         corridaModel.setPausada(false);
         return corridaRepository.save(corridaModel);
     }
-    public CorridaModel pausarCorrida(Long id){
+
+    /**
+     * Pausa uma corrida existente.
+     *
+     * @param id ID da corrida a ser pausada
+     * @return CorridaModel com os dados da corrida pausada
+     */
+    public CorridaModel pausarCorrida(Long id) {
         CorridaModel corridaModel = corridaRepository.findById(id).orElseThrow();
         corridaModel.setPausada(true);
         return corridaRepository.save(corridaModel);
     }
-    public CorridaModel continuarCorrida(Long id){
+
+    /**
+     * Continua uma corrida pausada.
+     *
+     * @param id ID da corrida a ser continuada
+     * @return CorridaModel com os dados da corrida continuada
+     */
+    public CorridaModel continuarCorrida(Long id) {
         CorridaModel corridaModel = corridaRepository.findById(id).orElseThrow();
         corridaModel.setPausada(false);
         return corridaRepository.save(corridaModel);
     }
-    public CorridaModel finalizarCorrida(Long id){
+
+    /**
+     * Finaliza uma corrida existente.
+     *
+     * @param id ID da corrida a ser finalizada
+     * @return CorridaModel com os dados da corrida finalizada
+     */
+    public CorridaModel finalizarCorrida(Long id) {
         CorridaModel corridaModel = corridaRepository.findById(id).orElseThrow();
         corridaModel.setFim(LocalDateTime.now());
         return corridaRepository.save(corridaModel);

@@ -10,6 +10,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 import java.util.Random;
 
+/**
+ * Controlador REST para gerenciar operações de reset de senha.
+ */
 @RestController
 @RequestMapping("/")
 public class ResetController {
@@ -20,11 +23,22 @@ public class ResetController {
     @Autowired
     private ResetTokenRepository resetTokenRepository;
 
+    /**
+     * Gera um token de 4 dígitos.
+     *
+     * @return token gerado
+     */
     private String gerarToken() {
         Random random = new Random();
         return String.format("%04d", random.nextInt(10000)); // Gera um token de 4 dígitos
     }
 
+    /**
+     * Envia um token de reset de senha para o email do usuário.
+     *
+     * @param request mapa contendo o email do usuário
+     * @return ResponseEntity com mensagem de sucesso ou erro
+     */
     @PostMapping("/resetSenha")
     public ResponseEntity resetSenha(@RequestBody Map<String, String> request) {
         String email = request.get("email");
@@ -52,6 +66,12 @@ public class ResetController {
         return ResponseEntity.ok("Token de reset de senha enviado para o e-mail");
     }
 
+    /**
+     * Verifica a validade de um token de reset de senha.
+     *
+     * @param request mapa contendo o token
+     * @return ResponseEntity com mensagem de sucesso ou erro
+     */
     @PostMapping("/verificaToken")
     public ResponseEntity<String> verificaToken(@RequestBody Map<String, String> request) {
         String token = request.get("token");
@@ -65,6 +85,12 @@ public class ResetController {
         return ResponseEntity.ok("Token válido");
     }
 
+    /**
+     * Salva a nova senha do usuário.
+     *
+     * @param request mapa contendo o token e a nova senha
+     * @return ResponseEntity com mensagem de sucesso ou erro
+     */
     @PostMapping("/saveSenha")
     public ResponseEntity<String> saveSenha(@RequestBody Map<String, String> request) {
         String token = request.get("token");
@@ -84,5 +110,4 @@ public class ResetController {
         resetTokenRepository.delete(resetToken); // Remove o token após o uso
         return ResponseEntity.ok("Senha alterada com sucesso");
     }
-
 }

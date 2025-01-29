@@ -10,9 +10,18 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Manipulador global de exceções para tratar validações.
+ */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    /**
+     * Manipula exceções de validação de argumentos de método.
+     *
+     * @param ex exceção de validação de argumentos de método
+     * @return ResponseEntity contendo os erros de validação
+     */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
