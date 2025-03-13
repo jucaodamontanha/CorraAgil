@@ -27,15 +27,16 @@ public class CorridaModel {
      * @param id ID da corrida
      * @param inicio Data e hora de início da corrida
      * @param fim Data e hora de fim da corrida
-     * @param duracao Duração da corrida
      * @param pausada Indica se a corrida está pausada
      */
-    public CorridaModel(Long id, LocalDateTime inicio, LocalDateTime fim, Duration duracao, boolean pausada) {
+    public CorridaModel(Long id, LocalDateTime inicio, LocalDateTime fim, boolean pausada) {
         this.id = id;
         this.inicio = inicio;
         this.fim = fim;
-        this.duracao = duracao;
         this.pausada = pausada;
+        if (this.inicio != null && this.fim != null) {
+            this.duracao = Duration.between(this.inicio, this.fim);
+        }
     }
 
     /**
@@ -106,6 +107,9 @@ public class CorridaModel {
      */
     public void setFim(LocalDateTime fim) {
         this.fim = fim;
+        if (this.inicio != null && this.fim != null) {
+            this.duracao = Duration.between(this.inicio, this.fim);
+        }
     }
 
     /**

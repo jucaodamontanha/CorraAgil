@@ -1,10 +1,13 @@
 package br.com.pipocaagil.corraagil.corrida;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.time.Duration;
 
 /**
  * Controlador REST para gerenciar operações de corrida.
@@ -54,7 +57,9 @@ public class CorridaController {
      * @return CorridaModel com os dados da corrida finalizada
      */
     @PostMapping("/finalizar/{id}")
-    public CorridaModel finalizarCorrida(@PathVariable Long id) {
-        return corridaService.finalizarCorrida(id);
+    public ResponseEntity<String> finalizarCorrida(@PathVariable Long id) {
+        CorridaModel corridaModel = corridaService.finalizarCorrida(id);
+        Duration duracao = corridaModel.getDuracao();
+        return ResponseEntity.ok("Duração da corrida: " + duracao.toMinutes() + " minutos");
     }
 }
