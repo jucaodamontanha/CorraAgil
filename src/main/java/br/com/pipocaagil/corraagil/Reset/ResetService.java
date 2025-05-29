@@ -2,11 +2,15 @@ package br.com.pipocaagil.corraagil.Reset;
 
 import br.com.pipocaagil.corraagil.Cadastro.CadastroModel;
 import br.com.pipocaagil.corraagil.Cadastro.CadastroRepository;
+import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
 import java.util.Random;
 
 /**
@@ -60,12 +64,48 @@ public class ResetService {
      * @param token token de reset de senha
      */
     public void ResetTokenEmail(String email, String token) {
-        SimpleMailMessage emailMessage = new SimpleMailMessage();
-        emailMessage.setTo(email);
-        emailMessage.setSubject("Reset de Senha");
-        emailMessage.setText("Seu token de reset de senha é: " + token +
-                "\n\nEste token é válido por 20 minutos.");
-        mailSender.send(emailMessage);
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(email);
+            helper.setSubject("Reset de Senha");
+
+            // HTML estilizado com token
+            String htmlContent = """
+    <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: auto; border: 1px solid #ccc;">
+        <div style="background-color: #0f2439; padding: 30px; border-radius: 15px; color: white; text-align: center;">
+            <img src='cid:logoCorraAgil' alt='CorraÁGIL' style='max-width: 150px; display: block; margin: auto;' />
+            <div style="margin-top: 30px;">
+                <img src='cid:cadeado' alt='Ícone Cadeado' style='width: 60px; height: 60px;' />
+            </div>
+            <h2 style="margin-top: 20px;">Seu link de verificação da CorraÁGIL é:</h2>
+            <p style="color: #00BFFF; font-weight: bold;">
+    """ + token + """
+            </p>
+        </div>
+        <div style="margin-top: 30px; text-align: center; font-size: 15px; color: #000;">
+            <p>Clique neste link para acessar sua conta da CorraÁGIL. Por motivos de segurança, não use este link fora da CorraÁGIL.</p>
+            <p><strong>Nunca divulgue este link.</strong></p>
+            <p>Este link será válido até <strong>2h</strong>, após esse prazo será necessário solicitar outro.</p>
+            <p>Não solicitou este link? Faça login no seu perfil CorraÁGIL e atualize sua senha.</p>
+        </div>
+    </div>
+    """;
+
+
+            helper.setText(htmlContent, true);
+
+            // Embutir as imagens
+            FileSystemResource logo = new FileSystemResource(new File("src/main/resources/logo.png")); // substitua pela imagem do logotipo
+            FileSystemResource cadeado = new FileSystemResource(new File("src/main/resources/cadeado.png")); // substitua pela imagem do cadeado
+            helper.addInline("logoCorraAgil", logo);
+            helper.addInline("cadeado", cadeado);
+
+            mailSender.send(message);
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao enviar e-mail de reset de senha", e);
+        }
     }
 
     /**

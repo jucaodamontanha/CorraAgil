@@ -55,11 +55,32 @@ public class CadastroController {
         if (cadastroService.emailJaCadastrado(cadastroModel.getEmail())) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Usuário já cadastrado com este email.");
         }
+
         CadastroModel savedCadastro = cadastroService.salvar(cadastroModel);
-        emailService.sendConfirmationEmail(cadastroModel.getEmail(), "Confirmação de Cadastro", "Obrigado por se cadastrar!");
+
+        // Conteúdo HTML do e-mail (sem botão)
+        String htmlContent = """
+    <div style="font-family: Arial, sans-serif; border: 1px solid #ccc; padding: 0; max-width: 600px; margin: auto;">
+        <div style="text-align: center;">
+            <img src='cid:logoCorraAgil' alt='CorraÁGIL' style='width: 100%; max-height: 300px; object-fit: cover;' />
+        </div>
+        <div style="padding: 20px;">
+            <p>Olá,</p>
+            <p>Você efetuou o cadastro do seu e-mail em nosso app, estamos fazendo a verificação e validação.</p>
+            <p style="margin-top: 40px;">Equipe, <strong>CorraÁGIL</strong>.</p>
+        </div>
+    </div>
+""";
+
+        emailService.sendConfirmationEmail(
+                cadastroModel.getEmail(),
+                "Confirmação de Cadastro",
+                htmlContent
+        );
 
         return ResponseEntity.status(HttpStatus.CREATED).body("Cadastro realizado com sucesso!");
     }
+
 
     /**
      * Atualiza um cadastro existente.
