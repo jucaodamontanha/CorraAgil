@@ -3,10 +3,7 @@ package br.com.pipocaagil.corraagil.Cadastro;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Pattern;
-<<<<<<< HEAD
-import org.springframework.stereotype.Service;
-=======
->>>>>>> 20ebe67897f6aaf36f8fa490c8c2d4ca72bf77f4
+
 
 /**
  * Entidade que representa um cadastro no sistema.
