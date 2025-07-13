@@ -1,5 +1,9 @@
-package br.com.pipocaagil.corraagil.Cadastro;
+package br.com.pipocaagil.corraagil.controller;
 
+import br.com.pipocaagil.corraagil.model.CadastroModel;
+import br.com.pipocaagil.corraagil.exception.CadastroNotFoundException;
+import br.com.pipocaagil.corraagil.service.CadastroService;
+import br.com.pipocaagil.corraagil.service.EmailService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

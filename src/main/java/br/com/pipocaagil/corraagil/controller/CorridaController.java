@@ -1,5 +1,7 @@
-package br.com.pipocaagil.corraagil.corrida;
+package br.com.pipocaagil.corraagil.controller;
 
+import br.com.pipocaagil.corraagil.model.CorridaModel;
+import br.com.pipocaagil.corraagil.service.CorridaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 

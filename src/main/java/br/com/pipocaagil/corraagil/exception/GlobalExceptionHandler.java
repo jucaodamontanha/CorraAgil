@@ -1,4 +1,4 @@
-package br.com.pipocaagil.corraagil.Cadastro;
+package br.com.pipocaagil.corraagil.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

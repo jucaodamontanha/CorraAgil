@@ -1,4 +1,4 @@
-package br.com.pipocaagil.corraagil.Cadastro;
+package br.com.pipocaagil.corraagil.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;

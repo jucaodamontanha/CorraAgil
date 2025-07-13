@@ -1,4 +1,4 @@
-package br.com.pipocaagil.corraagil.Cadastro;
+package br.com.pipocaagil.corraagil.exception;
 
 /**
  * Exceção lançada quando um cadastro não é encontrado.

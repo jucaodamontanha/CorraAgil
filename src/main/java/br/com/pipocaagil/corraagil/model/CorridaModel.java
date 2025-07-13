@@ -1,4 +1,4 @@
-package br.com.pipocaagil.corraagil.corrida;
+package br.com.pipocaagil.corraagil.model;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;

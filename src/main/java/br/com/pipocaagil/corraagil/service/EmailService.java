@@ -1,4 +1,4 @@
-package br.com.pipocaagil.corraagil.Cadastro;
+package br.com.pipocaagil.corraagil.service;
 
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;

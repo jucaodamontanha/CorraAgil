@@ -1,5 +1,8 @@
-package br.com.pipocaagil.corraagil.Cadastro;
+package br.com.pipocaagil.corraagil.service;
 
+import br.com.pipocaagil.corraagil.model.CadastroModel;
+import br.com.pipocaagil.corraagil.exception.CadastroNotFoundException;
+import br.com.pipocaagil.corraagil.repository.CadastroRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

@@ -1,7 +1,9 @@
-package br.com.pipocaagil.corraagil.Reset;
+package br.com.pipocaagil.corraagil.service;
 
-import br.com.pipocaagil.corraagil.Cadastro.CadastroModel;
-import br.com.pipocaagil.corraagil.Cadastro.CadastroRepository;
+import br.com.pipocaagil.corraagil.model.CadastroModel;
+import br.com.pipocaagil.corraagil.Reset.ResetToken;
+import br.com.pipocaagil.corraagil.repository.CadastroRepository;
+import br.com.pipocaagil.corraagil.repository.ResetTokenRepository;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -11,7 +13,6 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
 import java.util.Random;
 
 /**

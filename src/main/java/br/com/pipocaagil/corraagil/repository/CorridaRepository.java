@@ -1,5 +1,6 @@
-package br.com.pipocaagil.corraagil.corrida;
+package br.com.pipocaagil.corraagil.repository;
 
+import br.com.pipocaagil.corraagil.model.CorridaModel;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
