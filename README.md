@@ -18,23 +18,21 @@ Este projeto é uma aplicação Spring Boot para gerenciar cadastros e corridas.
 Certifique-se de que o PostgreSQL esteja instalado e em execução. Configure as propriedades do banco de dados no arquivo `application.properties`:
 
 ```properties
-spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+spring.datasource.url=${banco_url}
+spring.datasource.username=${banco_username}
+spring.datasource.password=${banco_password}
 spring.datasource.driver-class-name=org.postgresql.Driver
-spring.datasource.username=admin
-spring.datasource.password=5YZpWlndkTJQOlVtnKBnbMfIwOZ2fAQg
-spring.datasource.url=jdbc:postgresql://dpg-cu2q428gph6c73biop3g-a/corraagil_wuor
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
 spring.jpa.generate-ddl=true
 spring.jpa.hibernate.ddl-auto=update
 spring.jpa.show-sql=true
-Servidor de Email
-Configure as propriedades do servidor de email no arquivo application.properties:
-
-spring.mail.host=smtp.gmail.com
-spring.mail.port=587
-spring.mail.username=jucaodamontanha@gmail.com
-spring.mail.password=dptk rpqc fsjd vokr
+spring.mail.host=${email_host}
+spring.mail.port=${email_port}
+spring.mail.username=${email_username}
+spring.mail.password=${email_password}
 spring.mail.properties.mail.smtp.auth=true
 spring.mail.properties.mail.smtp.starttls.enable=true
+spring.mail.properties.mail.smtp.starttls.required=true
 ```
 ## Executando a Aplicação
 
