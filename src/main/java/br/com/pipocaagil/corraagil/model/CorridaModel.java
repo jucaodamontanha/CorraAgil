@@ -1,75 +1,32 @@
 package br.com.pipocaagil.corraagil.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+import java.time.Duration;
 
 /**
  * Entidade que representa uma corrida.
  */
 @Entity
+@Data // Gera getters, setters, toString, equals e hashCode
+@NoArgsConstructor // Gera construtor padrão sem argumentos
+@AllArgsConstructor // Gera construtor com todos os argumentos
+@Table(name = "corridas")
 public class CorridaModel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String time;
-    private String distance;
-    private String calories;
 
-    public CorridaModel(Long id, String time, String distance, String calories) {
-        this.id = id;
-        this.time = time;
-        this.distance = distance;
-        this.calories = calories;
-    }
+    // Use tipos de dados mais apropriados
+    private Duration duration;
+    private Double distance;
+    private Integer calories;
 
-    /**
-     * Construtor padrão.
-     */
-    public CorridaModel() {}
-
-    @Override
-    public String toString() {
-        return "CorridaModel{" +
-                "id=" + id +
-                ", time=" + time +
-                ", distance='" + distance + '\'' +
-                ", calories='" + calories + '\'' +
-                '}';
-    }
-
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getTime() {
-        return time;
-    }
-
-    public void setTime(String time) {
-        this.time = time;
-    }
-
-    public String getDistance() {
-        return distance;
-    }
-
-    public void setDistance(String distance) {
-        this.distance = distance;
-    }
-
-    public String getCalories() {
-        return calories;
-    }
-
-    public void setCalories(String calories) {
-        this.calories = calories;
-    }
+    // Relacionamento com CadastroModel
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "cadastro_id", nullable = false)
+    private CadastroModel cadastro;
 }

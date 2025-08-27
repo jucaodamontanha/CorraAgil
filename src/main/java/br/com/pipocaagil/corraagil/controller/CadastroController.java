@@ -1,11 +1,10 @@
 package br.com.pipocaagil.corraagil.controller;
 
-import br.com.pipocaagil.corraagil.model.CadastroModel;
-import br.com.pipocaagil.corraagil.exception.CadastroNotFoundException;
+import br.com.pipocaagil.corraagil.dto.CadastroRequestDTO;
+import br.com.pipocaagil.corraagil.dto.CadastroResponseDTO;
 import br.com.pipocaagil.corraagil.service.CadastroService;
 import br.com.pipocaagil.corraagil.service.EmailService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,132 +18,66 @@ import java.util.List;
 @RequestMapping("/cadastro")
 public class CadastroController {
 
-    @Autowired
-    private CadastroService cadastroService;
+    private final CadastroService cadastroService;
+    private final EmailService emailService;
 
-    @Autowired
-    private EmailService emailService;
+    // Injeção de dependência via construtor
+    public CadastroController(CadastroService cadastroService, EmailService emailService) {
+        this.cadastroService = cadastroService;
+        this.emailService = emailService;
+    }
 
-    /**
-     * Retorna uma lista de todos os cadastros.
-     *
-     * @return lista de CadastroModel
-     */
     @GetMapping("/todos")
-    public List<CadastroModel> getAllCadastroModel() {
-        return cadastroService.listarTodos();
+    public ResponseEntity<List<CadastroResponseDTO>> getAllCadastro() {
+        List<CadastroResponseDTO> lista = cadastroService.listarTodos();
+        return ResponseEntity.ok(lista);
     }
 
-    /**
-     * Busca um cadastro pelo ID.
-     *
-     * @param id ID do cadastro
-     * @return ResponseEntity com o CadastroModel encontrado ou status 404 se não encontrado
-     */
     @GetMapping("/{id}")
-    public ResponseEntity<CadastroModel> buscar(@PathVariable Long id) {
-        return cadastroService.buscar(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<CadastroResponseDTO> buscarPorId(@PathVariable Long id) {
+        CadastroResponseDTO dto = cadastroService.buscarPorId(id);
+        return ResponseEntity.ok(dto);
     }
 
-    /**
-     * Cria um novo cadastro.
-     *
-     * @param cadastroModel dados do novo cadastro
-     * @return ResponseEntity com mensagem de sucesso ou conflito se o email já estiver cadastrado
-     */
     @PostMapping
-    public ResponseEntity<String> createCadastroModel(@Valid @RequestBody CadastroModel cadastroModel) {
-        if (cadastroService.emailJaCadastrado(cadastroModel.getEmail())) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("Usuário já cadastrado com este email.");
-        }
+    public ResponseEntity<CadastroResponseDTO> createCadastro(@Valid @RequestBody CadastroRequestDTO dto) {
+        CadastroResponseDTO saved = cadastroService.salvar(dto);
 
-        CadastroModel savedCadastro = cadastroService.salvar(cadastroModel);
-
-        // Conteúdo HTML do e-mail (sem botão)
         String htmlContent = """
-    <div style="font-family: Arial, sans-serif; border: 1px solid #ccc; padding: 0; max-width: 600px; margin: auto;">
-        <div style="text-align: center;">
-            <img src='cid:logoCorraAgil' alt='CorraÁGIL' style='width: 100%; max-height: 300px; object-fit: cover;' />
+        <div style="font-family: 'Poppins', sans-serif; max-width: 600px; margin: auto; border: 1px solid #ddd; border-radius: 8px; overflow: hidden;">
+            <div style="background-image: url('cid:imagemCorraAgil'); background-size: cover; background-position: center; height: 250px; text-align: right; padding: 15px;">
+                <h1 style="color: white; margin: 0; padding-right: 15px;">CorraÁGIL</h1>
+            </div>
+            <div style="padding: 20px; text-align: center;">
+                <p style="font-size: 16px; color: #555;">Olá,</p>
+                <p style="font-size: 16px; color: #555;">Você efetuou o cadastro do seu e-mail em nosso app, estamos fazendo a verificação e validação</p>
+                <a href="#" style="display: inline-block; padding: 12px 24px; margin-top: 20px; background-color: #0d47a1; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">
+                    Clique aqui e confirme o seu e-mail
+                </a>
+                <p style="font-size: 14px; color: #888; margin-top: 40px;">Equipe, <strong>CorraÁGIL</strong>.</p>
+            </div>
         </div>
-        <div style="padding: 20px;">
-            <p>Olá,</p>
-            <p>Você efetuou o cadastro do seu e-mail em nosso app, estamos fazendo a verificação e validação.</p>
-            <p style="margin-top: 40px;">Equipe, <strong>CorraÁGIL</strong>.</p>
-        </div>
-    </div>
-""";
+        """;
 
-        emailService.sendConfirmationEmail(
-                cadastroModel.getEmail(),
-                "Confirmação de Cadastro",
-                htmlContent
-        );
+        emailService.sendConfirmationEmail(dto.getEmail(), "Confirmação de Cadastro", htmlContent);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body("Cadastro realizado com sucesso!");
+        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
-
-    /**
-     * Atualiza um cadastro existente.
-     *
-     * @param id ID do cadastro a ser atualizado
-     * @param cadastroModel dados atualizados do cadastro
-     * @return ResponseEntity com o CadastroModel atualizado ou status 404 se não encontrado
-     */
     @PutMapping("/{id}")
-    public ResponseEntity<CadastroModel> atualizar(@PathVariable Long id, @Valid @RequestBody CadastroModel cadastroModel) {
-        try {
-            CadastroModel updatedCadastro = cadastroService.atualizar(id, cadastroModel);
-            return ResponseEntity.ok(updatedCadastro);
-        } catch (CadastroNotFoundException e) {
-            return ResponseEntity.notFound().build();
-        }
+    public ResponseEntity<CadastroResponseDTO> atualizar(@PathVariable Long id, @Valid @RequestBody CadastroRequestDTO dto) {
+        // O serviço irá lançar uma ResourceNotFoundException se o ID não existir.
+        // Essa exceção será capturada pelo GlobalExceptionHandler.
+        CadastroResponseDTO atualizado = cadastroService.atualizar(id, dto);
+        return ResponseEntity.ok(atualizado);
     }
 
-    /**
-     * Deleta um cadastro pelo ID.
-     *
-     * @param id ID do cadastro a ser deletado
-     * @return ResponseEntity com status 204 (No Content)
-     */
+
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletarCadastroModel(@PathVariable Long id) {
+    public ResponseEntity<Void> deletar(@PathVariable Long id) {
+        // O serviço irá verificar a existência e lançar uma ResourceNotFoundException se o ID não existir.
+        // Essa exceção será capturada pelo GlobalExceptionHandler.
         cadastroService.deletar(id);
         return ResponseEntity.noContent().build();
-    }
-
-    /**
-     * Realiza login de um usuário.
-     *
-     * @param cadastroModel dados do usuário para login
-     * @return ResponseEntity com mensagem de sucesso ou falha no login
-     */
-    @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody CadastroModel cadastroModel) {
-        CadastroModel usuarioAutenticado = cadastroService.autenticar(cadastroModel.getEmail(), cadastroModel.getSenha());
-        if (usuarioAutenticado != null) {
-            return ResponseEntity.ok("Login bem-sucedido!");
-        } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Falha no login. Verifique suas credenciais.");
-        }
-    }
-
-    /**
-     * Atualiza a senha de um cadastro.
-     *
-     * @param id ID do cadastro
-     * @param novaSenha nova senha
-     * @return ResponseEntity com status 200 (OK) ou 404 se não encontrado
-     */
-    @PutMapping("/{id}/reset")
-    public ResponseEntity<Void> atualizarSenha(@PathVariable Long id, @RequestBody String novaSenha) {
-        try {
-            cadastroService.atualizarSenha(id, novaSenha);
-            return ResponseEntity.ok().build();
-        } catch (CadastroNotFoundException e) {
-            return ResponseEntity.notFound().build();
-        }
     }
 }

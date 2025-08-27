@@ -1,20 +1,24 @@
 package br.com.pipocaagil.corraagil.service;
 
 import jakarta.mail.internet.MimeMessage;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
-/**
- * Serviço para envio de emails de confirmação com suporte a HTML.
- */
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.core.io.ClassPathResource;
+
 @Service
 public class EmailService {
 
-    @Autowired
-    private JavaMailSender mailSender;
+    private static final Logger logger = LoggerFactory.getLogger(EmailService.class);
+
+    private final JavaMailSender mailSender;
+
+    public EmailService(JavaMailSender mailSender) {
+        this.mailSender = mailSender;
+    }
 
     public void sendConfirmationEmail(String to, String subject, String htmlContent) {
         try {
@@ -25,13 +29,23 @@ public class EmailService {
             helper.setSubject(subject);
             helper.setText(htmlContent, true);
 
-            ClassPathResource image = new ClassPathResource("imagem.png");
-            helper.addInline("logoCorraAgil", image);
+            try {
+                // Adiciona a imagem de fundo 'imagem.png'
+                ClassPathResource backgroundImage = new ClassPathResource("imagem.png");
+                helper.addInline("imagemCorraAgil", backgroundImage);
+
+                // Adiciona o logo 'logo.png'
+                ClassPathResource logoImage = new ClassPathResource("logo.png");
+                helper.addInline("logoCorraAgil", logoImage);
+
+            } catch (Exception e) {
+                logger.error("Falha ao adicionar recursos de imagem no e-mail", e);
+            }
 
             mailSender.send(message);
+            logger.info("E-mail com o assunto '{}' enviado com sucesso para '{}'.", subject, to);
         } catch (Exception e) {
-            System.err.println("Falha ao enviar e-mail de confirmação: " + e.getMessage());
-            //opcional: log.warn("Erro ao enviar email", e);
+            logger.error("Falha ao enviar e-mail com o assunto '{}' para '{}'.", subject, to, e);
         }
     }
 }

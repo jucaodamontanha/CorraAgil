@@ -1,13 +1,16 @@
 package br.com.pipocaagil.corraagil.service;
 
+import br.com.pipocaagil.corraagil.dto.CadastroRequestDTO;
+import br.com.pipocaagil.corraagil.dto.CadastroResponseDTO;
+import br.com.pipocaagil.corraagil.exception.ResourceNotFoundException; // <-- Importação correta
 import br.com.pipocaagil.corraagil.model.CadastroModel;
-import br.com.pipocaagil.corraagil.exception.CadastroNotFoundException;
 import br.com.pipocaagil.corraagil.repository.CadastroRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import br.com.pipocaagil.corraagil.mapper.CadastroMapper;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Serviço para gerenciar operações de cadastro.
@@ -15,110 +18,66 @@ import java.util.Optional;
 @Service
 public class CadastroService {
 
-    @Autowired
-    private CadastroRepository cadastroRepository;
+    private final CadastroRepository cadastroRepository;
+    private final CadastroMapper cadastroMapper;
+    private final PasswordEncoder passwordEncoder;
 
-    /**
-     * Lista todos os cadastros.
-     *
-     * @return lista de CadastroModel
-     */
-    public List<CadastroModel> listarTodos() {
-        return cadastroRepository.findAll();
+    public CadastroService(CadastroRepository cadastroRepository, CadastroMapper cadastroMapper, PasswordEncoder passwordEncoder) {
+        this.cadastroRepository = cadastroRepository;
+        this.cadastroMapper = cadastroMapper;
+        this.passwordEncoder = passwordEncoder;
     }
 
-    /**
-     * Busca um cadastro pelo ID.
-     *
-     * @param id ID do cadastro
-     * @return Optional contendo o CadastroModel, se encontrado
-     */
-    public Optional<CadastroModel> buscar(Long id) {
-        return cadastroRepository.findById(id);
+    public List<CadastroResponseDTO> listarTodos() {
+        return cadastroRepository.findAll()
+                .stream()
+                .map(cadastroMapper::toResponseDTO)
+                .collect(Collectors.toList());
     }
 
-    /**
-     * Salva um novo cadastro.
-     *
-     * @param cadastroModel dados do novo cadastro
-     * @return CadastroModel salvo
-     */
-    public CadastroModel salvar(CadastroModel cadastroModel) {
-        return cadastroRepository.save(cadastroModel);
+    public CadastroResponseDTO buscarPorId(Long id) {
+        CadastroModel cadastro = cadastroRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Cadastro não encontrado com ID: " + id)); // <-- Troquei a exceção
+        return cadastroMapper.toResponseDTO(cadastro);
     }
 
-    /**
-     * Atualiza um cadastro existente.
-     *
-     * @param id ID do cadastro a ser atualizado
-     * @param cadastroModel dados atualizados do cadastro
-     * @return CadastroModel atualizado
-     * @throws CadastroNotFoundException se o cadastro não for encontrado
-     */
-    public CadastroModel atualizar(Long id, CadastroModel cadastroModel) {
-        return cadastroRepository.findById(id).map(existingCadastro -> {
-            existingCadastro.setNomeCompleto(cadastroModel.getNomeCompleto());
-            existingCadastro.setEmail(cadastroModel.getEmail());
-            existingCadastro.setSenha(cadastroModel.getSenha());
-            return cadastroRepository.save(existingCadastro);
-        }).orElseThrow(() -> new CadastroNotFoundException("Cadastro não encontrado!"));
+    public CadastroResponseDTO salvar(CadastroRequestDTO dto) {
+        CadastroModel model = cadastroMapper.toModel(dto);
+        model.setSenha(passwordEncoder.encode(model.getSenha()));
+        CadastroModel salvo = cadastroRepository.save(model);
+        return cadastroMapper.toResponseDTO(salvo);
     }
 
-    /**
-     * Deleta um cadastro pelo ID.
-     *
-     * @param id ID do cadastro a ser deletado
-     */
+    public CadastroResponseDTO atualizar(Long id, CadastroRequestDTO dto) {
+        CadastroModel cadastroExistente = cadastroRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Cadastro não encontrado!")); // <-- Troquei a exceção
+
+        cadastroExistente.setNomeCompleto(dto.getNomeCompleto());
+        cadastroExistente.setEmail(dto.getEmail());
+
+        if (dto.getSenha() != null && !dto.getSenha().isEmpty()) {
+            cadastroExistente.setSenha(passwordEncoder.encode(dto.getSenha()));
+        }
+
+        CadastroModel atualizado = cadastroRepository.save(cadastroExistente);
+        return cadastroMapper.toResponseDTO(atualizado);
+    }
+
     public void deletar(Long id) {
+        if (!cadastroRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Cadastro não encontrado para deletar com ID: " + id); // <-- Troquei a exceção
+        }
         cadastroRepository.deleteById(id);
     }
 
-    /**
-     * Autentica um usuário pelo email e senha.
-     *
-     * @param email Email do usuário
-     * @param senha Senha do usuário
-     * @return CadastroModel autenticado ou null se falhar
-     */
-    public CadastroModel autenticar(String email, String senha) {
-        CadastroModel cadastro = cadastroRepository.findByEmail(email);
-        if (cadastro != null && cadastro.getSenha().equals(senha)) {
-            return cadastro;
-        }
-        return null;
-    }
+    // O método autenticar foi removido
 
-    /**
-     * Atualiza a senha de um cadastro.
-     *
-     * @param id ID do cadastro
-     * @param novaSenha nova senha
-     * @throws CadastroNotFoundException se o cadastro não for encontrado
-     */
-    public void atualizarSenha(Long id, String novaSenha) throws CadastroNotFoundException {
+    public void atualizarSenha(Long id, String novaSenha) { // <-- Removi o 'throws CadastroNotFoundException'
         CadastroModel cadastro = cadastroRepository.findById(id)
-                .orElseThrow(() -> new CadastroNotFoundException("Cadastro não encontrado"));
-        cadastro.setSenha(novaSenha);
+                .orElseThrow(() -> new ResourceNotFoundException("Cadastro não encontrado")); // <-- Troquei a exceção
+        cadastro.setSenha(passwordEncoder.encode(novaSenha));
         cadastroRepository.save(cadastro);
     }
 
-    /**
-     * Busca um cadastro pelo email.
-     *
-     * @param email Email do cadastro
-     * @return CadastroModel correspondente ao email
-     */
-    public CadastroModel buscarPorEmail(String email) {
-        return cadastroRepository.findByEmail(email);
-    }
-
-    /**
-     * Verifica se um email já está cadastrado.
-     *
-     * @param email Email a ser verificado
-     * @return true se o email já estiver cadastrado, false caso contrário
-     */
-    public boolean emailJaCadastrado(String email) {
-        return cadastroRepository.findByEmail(email) != null;
-    }
+    // O método buscarPorEmail foi removido
 }

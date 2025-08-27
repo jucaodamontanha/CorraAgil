@@ -1,18 +1,14 @@
 package br.com.pipocaagil.corraagil.service;
 
 import br.com.pipocaagil.corraagil.model.CadastroModel;
-import br.com.pipocaagil.corraagil.Reset.ResetToken;
 import br.com.pipocaagil.corraagil.repository.CadastroRepository;
 import br.com.pipocaagil.corraagil.repository.ResetTokenRepository;
-import jakarta.mail.internet.MimeMessage;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
+import br.com.pipocaagil.corraagil.model.ResetToken; // Pacote a ser movido
+import br.com.pipocaagil.corraagil.exception.ResourceNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
 import java.util.Random;
 
 /**
@@ -20,112 +16,61 @@ import java.util.Random;
  */
 @Service
 public class ResetService {
-    @Autowired
-    private CadastroRepository cadastroRepository;
-    @Autowired
-    private ResetTokenRepository resetTokenRepository;
-    @Autowired
-    private JavaMailSender mailSender;
 
-    /**
-     * Gera um token de 4 dígitos.
-     *
-     * @return token gerado
-     */
+    private final CadastroRepository cadastroRepository;
+    private final ResetTokenRepository resetTokenRepository;
+    private final EmailService emailService;
+    private final PasswordEncoder passwordEncoder;
+
+    // Injeção de dependência via construtor (abordagem preferida)
+    public ResetService(CadastroRepository cadastroRepository, ResetTokenRepository resetTokenRepository,
+                        EmailService emailService, PasswordEncoder passwordEncoder) {
+        this.cadastroRepository = cadastroRepository;
+        this.resetTokenRepository = resetTokenRepository;
+        this.emailService = emailService;
+        this.passwordEncoder = passwordEncoder;
+    }
+
     private String gerarToken() {
         Random random = new Random();
-        return String.format("%04d", random.nextInt(10000)); // Gera um token de 4 dígitos
+        return String.format("%04d", random.nextInt(10000));
     }
 
-    /**
-     * Cria um token de reset para um cadastro.
-     *
-     * @param cadastroModel cadastro para o qual o token será criado
-     * @param token token gerado
-     */
-    public void createResetTokenForCadastro(CadastroModel cadastroModel, String token) {
-        ResetToken myToken = new ResetToken(token, cadastroModel);
-        resetTokenRepository.save(myToken);
+    public void gerarTokenParaEmail(String email) {
+        CadastroModel cadastroModel = cadastroRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado com o e-mail: " + email));
+
+        // Deleta tokens antigos do mesmo usuário para evitar duplicação
+        resetTokenRepository.findByCadastroModel(cadastroModel)
+                .ifPresent(resetTokenRepository::delete);
+
+        String newToken = gerarToken();
+        ResetToken resetToken = new ResetToken(newToken, cadastroModel);
+        resetTokenRepository.save(resetToken);
+
+        // Envia o e-mail com o token (agora responsabilidade do EmailService)
+        // O corpo do e-mail deve ser criado em uma camada adequada, mas por simplicidade, passamos o token aqui.
+        String htmlContent = "Seu código de redefinição de senha é: " + newToken;
+        emailService.sendConfirmationEmail(email, "Código de Redefinição de Senha", htmlContent);
     }
 
-    /**
-     * Cria um token de reset para um cadastro.
-     *
-     * @param cadastroModel cadastro para o qual o token será criado
-     */
-    public void createResetTokenForCadastro(CadastroModel cadastroModel) {
-        String token = gerarToken();
-        ResetToken myToken = new ResetToken(token, cadastroModel);
-        resetTokenRepository.save(myToken);
+    public boolean isTokenValido(String token) {
+        Optional<ResetToken> resetTokenOpt = resetTokenRepository.findByToken(token);
+        return resetTokenOpt.isPresent() && resetTokenOpt.get().isTokenValido();
     }
 
-    /**
-     * Envia um email com o token de reset de senha.
-     *
-     * @param email email do destinatário
-     * @param token token de reset de senha
-     */
-    public void ResetTokenEmail(String email, String token) {
-        try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+    public void redefinirSenha(String token, String novaSenha) {
+        ResetToken resetToken = resetTokenRepository.findByToken(token)
+                .orElseThrow(() -> new ResourceNotFoundException("Token inválido ou não encontrado"));
 
-            helper.setTo(email);
-            helper.setSubject("Reset de Senha");
-
-            String htmlContent = """
-        <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: auto; border: 1px solid #ccc;">
-            <div style="background-color: #0f2439; padding: 30px; border-radius: 15px; color: white; text-align: center;">
-                <img src='cid:logoCorraAgil' alt='CorraÁGIL' style='max-width: 150px; display: block; margin: auto;' />
-                <div style="margin-top: 30px;">
-                    <img src='cid:cadeado' alt='Ícone Cadeado' style='width: 60px; height: 60px;' />
-                </div>
-                <h2 style="margin-top: 20px;">Seu link de verificação da CorraÁGIL é:</h2>
-                <p style="color: #00BFFF; font-weight: bold;">
-        """ + token + """
-                </p>
-            </div>
-            <div style="margin-top: 30px; text-align: center; font-size: 15px; color: #000;">
-                <p>Clique neste link para acessar sua conta da CorraÁGIL. Por motivos de segurança, não use este link fora da CorraÁGIL.</p>
-                <p><strong>Nunca divulgue este link.</strong></p>
-                <p>Este link será válido até <strong>2h</strong>, após esse prazo será necessário solicitar outro.</p>
-                <p>Não solicitou este link? Faça login no seu perfil CorraÁGIL e atualize sua senha.</p>
-            </div>
-        </div>
-        """;
-
-            helper.setText(htmlContent, true);
-
-            // Use ClassPathResource
-            ClassPathResource logo = new ClassPathResource("logo.png");
-            ClassPathResource cadeado = new ClassPathResource("cadeado.png");
-
-            helper.addInline("logoCorraAgil", logo);
-            helper.addInline("cadeado", cadeado);
-
-            mailSender.send(message);
-        } catch (Exception e) {
-            System.err.println("Falha ao enviar e-mail de reset de senha: " + e.getMessage());
-            // ou log.warn("Erro ao enviar email", e);
+        if (!resetToken.isTokenValido()) {
+            resetTokenRepository.delete(resetToken);
+            throw new ResourceNotFoundException("Token expirado");
         }
-    }
 
-    /**
-     * Busca um token de reset pelo cadastro.
-     *
-     * @param cadastroModel cadastro associado ao token
-     * @return ResetToken encontrado
-     */
-    public ResetToken findTokenByCadastro(CadastroModel cadastroModel) {
-        return resetTokenRepository.findByCadastroModel(cadastroModel);
-    }
-
-    /**
-     * Deleta um token de reset.
-     *
-     * @param token token a ser deletado
-     */
-    public void deletarToken(ResetToken token) {
-        resetTokenRepository.delete(token);
+        CadastroModel user = resetToken.getCadastroModel();
+        user.setSenha(passwordEncoder.encode(novaSenha)); // Criptografa a nova senha
+        cadastroRepository.save(user);
+        resetTokenRepository.delete(resetToken); // Remove o token após o uso
     }
 }
