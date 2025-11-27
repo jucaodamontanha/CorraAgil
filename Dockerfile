@@ -1,31 +1,38 @@
-FROM ubuntu:latest AS build
 
-# Atualizar e instalar dependências em um único comando RUN
-RUN apt-get update && \
-    apt-get install -y openjdk-17-jdk maven && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+# ====== Stage de build ======
+FROM maven:3.9-eclipse-temurin-17 AS build
 
-# Definir o diretório de trabalho
 WORKDIR /app
 
-# Copiar todos os arquivos para o diretório de trabalho
+# Copia os POMs primeiro para aproveitar cache de dependências
+COPY pom.xml ./
+# Se tiver módulos, copie os poms dos módulos também:
+# COPY module-a/pom.xml module-a/pom.xml
+# COPY module-b/pom.xml module-b/pom.xml
+
+# Baixa dependências sem rodar testes (mais rápido)
+RUN mvn -B -q dependency:go-offline
+
+# Agora copia o restante do código
 COPY . .
 
-# Construir o projeto Maven
-RUN mvn clean install
+# Build do JAR (sem testes; ative se precisar)
+RUN mvn -B -q clean package -DskipTests
 
-# Usar uma imagem mais leve para a fase de execução
-FROM openjdk:17-jdk-slim
+# ====== Stage de runtime (leve) ======
+FROM eclipse-temurin:17-jre-alpine
 
-# Definir o diretório de trabalho
 WORKDIR /app
 
-# Expor a porta 8080
-EXPOSE 8080
-
-# Copiar o jar gerado da fase de build
+# Copia o JAR gerado (ajuste o nome se necessário)
 COPY --from=build /app/target/CorraAgil-0.0.1-SNAPSHOT.jar app.jar
 
-# Definir o ponto de entrada
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Variáveis úteis
+ENV JAVA_OPTS=""
+ENV PORT=8080
+
+# Exponha a porta (opcional — Render usa PORT)
+EXPOSE 8080
+
+# EntryPoint com suporte a JAVA_OPTS
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
