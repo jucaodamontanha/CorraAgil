@@ -2,6 +2,7 @@ package br.com.pipocaagil.corraagil.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -29,12 +30,16 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable()) // Disable CSRF since we are using JWT
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/login").permitAll() // Matches AuthController POST to /login
+                        .requestMatchers(HttpMethod.POST, "/login").permitAll() // Matches AuthController POST to /login
                         .requestMatchers("/cadastro").permitAll() // Matches CadastroController POST to /cadastro
-                        .requestMatchers("/cadastro/**").authenticated() // Protects other /cadastro paths (GET, PUT, DELETE)
-                        .requestMatchers("/corrida/**").authenticated() // Protects all /corrida paths
-                        .requestMatchers("/resetSenha/**").permitAll() // Paths for password reset
-                        .requestMatchers("/verificaToken/**").permitAll()
+                        .requestMatchers(HttpMethod.POST,"/cadastro/**").authenticated() // Protects other /cadastro paths (GET, PUT, DELETE)
+                        .requestMatchers(HttpMethod.POST,"/corrida/**").authenticated() // Protects all /corrida paths
+                        .requestMatchers(HttpMethod.POST,"/resetSenha/**").permitAll() // Paths for password reset
+                        .requestMatchers(HttpMethod.POST,"/verificaToken/**").permitAll()
+                        // Permite acesso às rotas do Swagger UI
+                        .requestMatchers("/swagger-ui.html").permitAll()
+                        .requestMatchers("/swagger-ui/**").permitAll()
+                        .requestMatchers("/v3/api-docs/**").permitAll()
                         .requestMatchers("/saveSenha/**").permitAll()
                         .anyRequest().authenticated() // All other requests require authentication
                 )

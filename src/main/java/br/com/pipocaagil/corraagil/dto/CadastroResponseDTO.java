@@ -8,6 +8,7 @@ public class CadastroResponseDTO {
     private Long id;
     private String nomeCompleto;
     private String email;
+    private String senha;
 
     // Construtor padrão
     public CadastroResponseDTO() {}
@@ -35,5 +36,13 @@ public class CadastroResponseDTO {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getSenha() {
+        return senha;
+    }
+
+    public void setSenha(String senha) {
+        this.senha = senha;
     }
 }
