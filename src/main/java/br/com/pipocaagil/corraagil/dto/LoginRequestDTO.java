@@ -12,4 +12,13 @@ public class LoginRequestDTO {
 
     @NotBlank(message = "A senha é obrigatória")
     private String senha;
+
+    public void setEmail(String email) {
+        // Verifica se o valor não é nulo antes de chamar toUpperCase()
+        if (email != null) {
+            this.email = email.toUpperCase(); // <--- A conversão acontece AQUI!
+        } else {
+            this.email = null;
+        }
+    }
 }

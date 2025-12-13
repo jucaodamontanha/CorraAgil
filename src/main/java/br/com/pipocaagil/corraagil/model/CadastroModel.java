@@ -15,6 +15,7 @@ public class CadastroModel {
     private Long id;
     private String nomeCompleto;
     @Email
+    @Column(unique = true)
     private String email;
     @Pattern(regexp = "^(?=.*[A-Z])(?=.*[@#$%^&+=]).{8,}$",
             message = "A senha deve ter no mínimo 8 caracteres, pelo menos um caractere especial e uma letra maiúscula.")

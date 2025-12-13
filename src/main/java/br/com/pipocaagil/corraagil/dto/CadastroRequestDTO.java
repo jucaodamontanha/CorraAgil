@@ -1,5 +1,6 @@
 package br.com.pipocaagil.corraagil.dto;
 
+import jakarta.persistence.Column;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -14,6 +15,7 @@ public class CadastroRequestDTO {
 
     @NotBlank(message = "O e-mail é obrigatório")
     @Email(message = "E-mail inválido")
+    @Column(unique = true)
     private String email;
 
     @NotBlank(message = "A senha é obrigatória")
@@ -30,7 +32,7 @@ public class CadastroRequestDTO {
     }
 
     public void setNomeCompleto(String nomeCompleto) {
-        this.nomeCompleto = nomeCompleto;
+        this.nomeCompleto = nomeCompleto.toUpperCase();
     }
 
     public String getEmail() {
@@ -38,7 +40,7 @@ public class CadastroRequestDTO {
     }
 
     public void setEmail(String email) {
-        this.email = email;
+        this.email = email.toUpperCase();
     }
 
     public String getSenha() {
