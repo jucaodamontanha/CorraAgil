@@ -74,7 +74,7 @@ public class CadastroModel {
      * @param nomeCompleto Nome completo do usuário
      */
     public void setNomeCompleto(String nomeCompleto) {
-        this.nomeCompleto = nomeCompleto;
+        this.nomeCompleto = nomeCompleto.toUpperCase();
     }
 
     /**
@@ -92,7 +92,7 @@ public class CadastroModel {
      * @param email Email do usuário
      */
     public void setEmail(String email) {
-        this.email = email;
+        this.email = email.toUpperCase();
     }
 
     /**
