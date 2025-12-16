@@ -13,6 +13,16 @@ import java.util.List;
 
 /**
  * Controlador REST para gerenciar operações de cadastro.
+ *
+ * Sucesso:
+ * - GET: 200 OK
+ * - POST: 201 CREATED
+ * - PUT: 200 OK
+ * - DELETE: 200 OK (com mensagem) ou 204 NO CONTENT
+ *
+ * Erro (Tratado no GlobalExceptionHandler):
+ * - Validação (@Valid): 400 BAD REQUEST
+ * - Recurso não encontrado (ResourceNotFoundException): 404 NOT FOUND
  */
 @RestController
 @RequestMapping("/cadastro")
@@ -30,19 +40,20 @@ public class CadastroController {
     @GetMapping("/todos")
     public ResponseEntity<List<CadastroResponseDTO>> getAllCadastro() {
         List<CadastroResponseDTO> lista = cadastroService.listarTodos();
-        return ResponseEntity.ok(lista);
+        return ResponseEntity.ok(lista); // Retorna 200 OK
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<CadastroResponseDTO> buscarPorId(@PathVariable Long id) {
         CadastroResponseDTO dto = cadastroService.buscarPorId(id);
-        return ResponseEntity.ok(dto);
+        return ResponseEntity.ok(dto); // Retorna 200 OK
     }
 
     @PostMapping
     public ResponseEntity<CadastroResponseDTO> createCadastro(@Valid @RequestBody CadastroRequestDTO dto) {
         CadastroResponseDTO saved = cadastroService.salvar(dto);
 
+        // --- Lógica de envio de e-mail (Mantida original) ---
         String htmlContent = """
         <div style="font-family: 'Poppins', sans-serif; max-width: 600px; margin: auto; border: 1px solid #ddd; border-radius: 8px; overflow: hidden;">
             <div style="background-image: url('cid:imagemCorraAgil'); background-size: cover; background-position: center; height: 250px; text-align: right; padding: 15px;">
@@ -61,23 +72,30 @@ public class CadastroController {
 
         emailService.sendConfirmationEmail(dto.getEmail(), "Confirmação de Cadastro", htmlContent);
 
+        // Retorna 201 CREATED (Indicando que um novo recurso foi criado)
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<CadastroResponseDTO> atualizar(@PathVariable Long id, @Valid @RequestBody CadastroRequestDTO dto) {
         // O serviço irá lançar uma ResourceNotFoundException se o ID não existir.
-        // Essa exceção será capturada pelo GlobalExceptionHandler.
+        // Essa exceção será capturada pelo GlobalExceptionHandler (404 NOT FOUND).
         CadastroResponseDTO atualizado = cadastroService.atualizar(id, dto);
-        return ResponseEntity.ok(atualizado);
+        return ResponseEntity.ok(atualizado); // Retorna 200 OK
     }
 
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletar(@PathVariable Long id) {
-        // O serviço irá verificar a existência e lançar uma ResourceNotFoundException se o ID não existir.
-        // Essa exceção será capturada pelo GlobalExceptionHandler.
+    // Mudamos o tipo de retorno para String para poder incluir uma mensagem no corpo
+    public ResponseEntity<String> deletar(@PathVariable Long id) {
+        // O serviço irá verificar a existência e lançar ResourceNotFoundException se o ID não existir.
+        // Essa exceção será capturada pelo GlobalExceptionHandler (404 NOT FOUND).
         cadastroService.deletar(id);
-        return ResponseEntity.noContent().build();
+
+        // OPÇÃO ESCOLHIDA (200 OK com Mensagem de Sucesso):
+        return ResponseEntity.ok("Cadastro com ID " + id + " deletado com sucesso.");
+
+        // OPÇÃO ALTERNATIVA (Padrão REST para DELETE bem-sucedido):
+        // return ResponseEntity.noContent().build(); // Retorna 204 NO CONTENT (sem corpo)
     }
 }

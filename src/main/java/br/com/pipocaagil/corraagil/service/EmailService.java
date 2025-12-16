@@ -37,6 +37,7 @@ public class EmailService {
                 // Adiciona o logo 'logo.png'
                 ClassPathResource logoImage = new ClassPathResource("logo.png");
                 helper.addInline("logoCorraAgil", logoImage);
+                
 
             } catch (Exception e) {
                 logger.error("Falha ao adicionar recursos de imagem no e-mail", e);
