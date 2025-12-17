@@ -5,6 +5,7 @@ import br.com.pipocaagil.corraagil.repository.CadastroRepository;
 import br.com.pipocaagil.corraagil.repository.ResetTokenRepository;
 import br.com.pipocaagil.corraagil.model.ResetToken; // Pacote a ser movido
 import br.com.pipocaagil.corraagil.exception.ResourceNotFoundException;
+import jakarta.transaction.Transactional;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -59,6 +60,7 @@ public class ResetService {
         return resetTokenOpt.isPresent() && resetTokenOpt.get().isTokenValido();
     }
 
+    @Transactional
     public void redefinirSenha(String token, String novaSenha) {
         ResetToken resetToken = resetTokenRepository.findByToken(token)
                 .orElseThrow(() -> new ResourceNotFoundException("Token inválido ou não encontrado"));

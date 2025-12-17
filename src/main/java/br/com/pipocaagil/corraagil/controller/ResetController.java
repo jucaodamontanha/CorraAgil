@@ -43,4 +43,5 @@ public class ResetController {
         resetService.redefinirSenha(requestDTO.getToken(), requestDTO.getNovaSenha());
         return ResponseEntity.ok("Senha alterada com sucesso");
     }
+
 }
